@@ -1,16 +1,18 @@
-// @ts-nocheck
 import React, {useEffect, useRef, useState} from 'react'
 import PointTarget from 'react-point'
-import './App.css';
+import './App.css'
+import {IAutoScalingTextProps} from "../types/auto-scaling-text";
 
-function AutoScalingText(props) {
-  const { scale, setScale } = useState(1)
+function AutoScalingText(props: IAutoScalingTextProps) {
+  const [scale, setScale] = useState<number>(1)
 
-  let node = useRef(null)
+  let node = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // @ts-ignore
     const parentNode = node.parentNode
     const availableWidth = parentNode.offsetWidth
+    // @ts-ignore
     const actualWidth = node.offsetWidth
     const actualScale = availableWidth / actualWidth
 
@@ -28,12 +30,13 @@ function AutoScalingText(props) {
       <div
           className="auto-scaling-text"
           style={{ transform: `scale(${scale},${scale})` }}
+          // @ts-ignore
           ref={n => node = n}
       >{props.children}</div>
   )
 }
 
-function CalculatorDisplay(prop) {
+function CalculatorDisplay(prop: CalculatorDisplayProp) {
   const { value, ...props } = prop
   const language = navigator.language || 'en-US'
   let formattedValue = parseFloat(value).toLocaleString(language, {
@@ -52,7 +55,7 @@ function CalculatorDisplay(prop) {
   )
 }
 
-function CalculatorKey(prop) {
+function CalculatorKey(prop: ICalculatorKeyProp) {
   const { onPress, className, ...props } = prop
   return (
       <PointTarget onPoint={onPress}>
@@ -61,7 +64,7 @@ function CalculatorKey(prop) {
   )
 }
 
-const CalculatorOperations = {
+const CalculatorOperations: Record<Operator, OperationFunc> = {
   '/': (prevValue, nextValue) => prevValue / nextValue,
   '*': (prevValue, nextValue) => prevValue * nextValue,
   '+': (prevValue, nextValue) => prevValue + nextValue,
@@ -70,10 +73,10 @@ const CalculatorOperations = {
 }
 
 function Calculator() {
-  const [value, setValue] = useState(null)
-  const [displayValue, setDisplayValue] = useState('0')
-  const [operator, setOperator] = useState(null)
-  const [waitingForOperand, setWaitingForOperand] = useState(false)
+  const [value, setValue] = useState<string | number | null>(null)
+  const [displayValue, setDisplayValue] = useState<string>('0')
+  const [operator, setOperator] = useState<Operator | null>(null)
+  const [waitingForOperand, setWaitingForOperand] = useState<boolean>(false)
 
   const clearAll = () => {
     setValue(null)
@@ -114,7 +117,7 @@ function Calculator() {
     }
   }
 
-  const inputDigit = (digit) => {
+  const inputDigit = (digit: number | string) => {
     if (waitingForOperand) {
       setDisplayValue(String(digit))
       setWaitingForOperand(false)
@@ -123,13 +126,13 @@ function Calculator() {
     }
   }
 
-  const performOperation = (nextOperator) => {
+  const performOperation = (nextOperator: Operator) => {
     const inputValue = parseFloat(displayValue)
 
     if (value == null) {
       setValue(inputValue)
     } else if (operator) {
-      const currentValue = value || 0
+      const currentValue = Number(value || 0)
       const newValue = CalculatorOperations[operator](currentValue, inputValue)
 
       setValue(newValue)
@@ -140,7 +143,7 @@ function Calculator() {
     setOperator(nextOperator)
   }
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
     let { key } = event
 
     if (key === 'Enter')
@@ -151,7 +154,7 @@ function Calculator() {
       inputDigit(parseInt(key, 10))
     } else if (key in CalculatorOperations) {
       event.preventDefault()
-      performOperation(key)
+      performOperation(key as Operator)
     } else if (key === '.') {
       event.preventDefault()
       inputDot()
@@ -164,7 +167,7 @@ function Calculator() {
     } else if (key === 'Clear') {
       event.preventDefault()
 
-      if (state.displayValue !== '0') {
+      if (displayValue !== '0') {
         clearDisplay()
       } else {
         clearAll()
@@ -173,6 +176,7 @@ function Calculator() {
   };
 
   useEffect(() => {
+    // @ts-ignore
     document.removeEventListener('keydown', handleKeyDown)
   })
 
